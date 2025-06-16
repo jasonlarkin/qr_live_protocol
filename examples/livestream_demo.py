@@ -15,13 +15,48 @@ import signal
 import threading
 from pathlib import Path
 from datetime import datetime
+import os
 
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# Add project root to path for imports - ensure we're at the very front
+project_root = Path(__file__).parent.parent
+project_src = project_root / "src"
 
-from src import QRLiveProtocol, QRLPConfig
-from src.web_server import QRLiveWebServer
-from src.config import *
+# Remove any existing entries first to avoid conflicts
+sys_path_clean = [p for p in sys.path if not p.endswith('/src') or p == str(project_root)]
+sys.path[:] = sys_path_clean
+
+# Insert the project root at the very beginning
+sys.path.insert(0, str(project_root))
+
+# Use absolute imports to avoid conflicts with other src modules
+import importlib.util
+import types
+
+# Import modules directly from the current project's src directory
+def import_from_src(module_name):
+    """Import a module from the current project's src directory."""
+    module_path = project_src / f"{module_name}.py"
+    if not module_path.exists():
+        raise ImportError(f"Module {module_name} not found in {project_src}")
+    
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+# Load the main src package
+src_init_path = project_src / "__init__.py"
+spec = importlib.util.spec_from_file_location("src", src_init_path)
+src_module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(src_module)
+
+# Import required classes from the loaded module
+QRLiveProtocol = src_module.QRLiveProtocol
+QRLPConfig = src_module.QRLPConfig
+QRLiveWebServer = src_module.QRLiveWebServer
+
+# Import config module
+config_module = import_from_src("config")
 
 
 class QRLPDemo:
@@ -123,11 +158,13 @@ class QRLPDemo:
             if verification.get('valid_json', False):
                 self.stats['verification_successes'] += 1
             
-            # Log update
+            # Log update with user data info
+            user_data_info = f"User: {qr_data.user_data['user_text'][:20]}..." if qr_data.user_data and qr_data.user_data.get('user_text') else "No user data"
             print(f"📱 QR #{qr_data.sequence_number} | "
                   f"{qr_data.timestamp[:19]} | "
                   f"Identity: {qr_data.identity_hash[:8]}... | "
-                  f"Blockchain: {len(qr_data.blockchain_hashes)} chains")
+                  f"Blockchain: {len(qr_data.blockchain_hashes)} chains | "
+                  f"{user_data_info}")
         
         def web_server_callback(qr_data, qr_image):
             """Handle web server updates."""
@@ -224,21 +261,25 @@ class QRLPDemo:
             # 5. Setup callbacks
             self.setup_callbacks()
             
-            # 6. Start services
+            # 6. Connect user data from web server to QR generation
+            print("🔗 Connecting user input to QR generation...")
+            self.qrlp.set_user_data_callback(lambda: self.web_server.get_user_data())
+            
+            # 7. Start services
             print("▶️  Starting live QR generation...")
             self.web_server.start_server(threaded=True)
             time.sleep(1)  # Let web server start
             
             self.qrlp.start_live_generation()
             
-            # 7. Mark as running
+            # 8. Mark as running
             self.running = True
             self.stats['start_time'] = time.time()
             
-            # 8. Print demo information
+            # 9. Print demo information
             self.print_demo_info()
             
-            # 9. Main loop - print statistics periodically
+            # 10. Main loop - print statistics periodically
             last_stats_time = 0
             while self.running:
                 current_time = time.time()

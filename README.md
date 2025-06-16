@@ -231,4 +231,21 @@ Core dependencies:
 - Configurable update intervals
 - Resource monitoring and statistics
 
+## License
+
+This project is licensed under the **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0)**.
+
+You are free to:
+- **Share** — copy and redistribute the material in any medium or format
+- **Adapt** — remix, transform, and build upon the material
+
+Under the following terms:
+- **Attribution** — You must give appropriate credit, provide a link to the license, and indicate if changes were made
+- **NonCommercial** — You may not use the material for commercial purposes
+- **ShareAlike** — If you remix, transform, or build upon the material, you must distribute your contributions under the same license as the original
+
+For more details, see the [full license text](https://creativecommons.org/licenses/by-nc-sa/4.0/) or the LICENSE file in this repository.
+
+---
+
 QRLP runs and displays a QR code in a browser window, which confirms the user's identity and time. For example it could display just the live time, or a combination of the time and the user's identity (file hash). Or QR code with multiple sources of information, like public blockchain hashes, and verified calls to time servers, to confirm the user's place in time. All encoded in a QR code, shown in the browser window along with the plain text of the information. For use in Livestreaming and official video releases. 

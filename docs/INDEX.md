@@ -24,6 +24,9 @@ Welcome to the QR Live Protocol (QRLP) documentation! This index will help you f
 | **[Installation](INSTALLATION.md)** | Setup and installation methods | Before using QRLP |
 | **[Configuration](CONFIGURATION.md)** | Detailed configuration options | Customizing QRLP behavior |
 | **[API Reference](API.md)** | Complete API documentation | Integrating QRLP into applications |
+| **[Streaming Integration](STREAMING.md)** | OBS Studio and live streaming setup | Customizing QRLP behavior |
+| **[Cognitive Security Framework](COGNITIVE_SECURITY.md)** | Temporal intelligence and cognitive security implementation | Customizing QRLP behavior |
+| **[FAQ](FAQ.md)** | Common questions and troubleshooting | All users |
 
 ### User Guides
 | Document | Description | Audience |

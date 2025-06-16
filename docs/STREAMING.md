@@ -41,6 +41,29 @@ Browser Source Settings:
 ❌ Use hardware acceleration: OFF (can cause issues)
 ```
 
+#### User Input Integration
+
+QRLP now supports real-time user input that gets included in QR codes:
+
+1. **Access the main interface** at `http://localhost:8080`
+2. **Enter custom messages** in the "User Input" section
+3. **Save messages** - they'll be included in all subsequent QR codes
+4. **Real-time updates** - Changes appear immediately in the viewer
+
+This is perfect for:
+- **Live Q&A sessions** - Include current question
+- **Event information** - Add event details or announcements  
+- **Viewer engagement** - Include social media handles or calls-to-action
+- **Context data** - Add stream topic or current segment info
+
+#### Enhanced Blockchain Display
+
+The viewer now shows complete blockchain information:
+- **Full hashes** instead of truncated versions
+- **Copy buttons** for easy verification
+- **Better formatting** for readability
+- **Multiple chain support** with clear labeling
+
 #### Multiple QR Layouts
 
 Create different scenes for different QR placements:

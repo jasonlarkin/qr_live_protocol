@@ -58,6 +58,9 @@ class QRLiveWebServer:
         self.is_running = False
         self.update_callback: Optional[Callable] = None
         
+        # User input for QR codes
+        self.user_input_data: Optional[str] = None
+        
         # Statistics
         self.page_views = 0
         self.websocket_connections = 0
@@ -128,6 +131,10 @@ class QRLiveWebServer:
             "current_qr_available": self.current_qr_data is not None
         }
     
+    def get_user_data(self) -> Optional[str]:
+        """Get current user input data for QR generation."""
+        return self.user_input_data
+    
     def _setup_routes(self) -> None:
         """Setup Flask routes."""
         
@@ -192,6 +199,36 @@ class QRLiveWebServer:
             """Admin interface for monitoring."""
             return render_template('admin.html', 
                                  statistics=self.get_statistics())
+        
+        @self.app.route('/api/user-data', methods=['POST'])
+        def update_user_data():
+            """API endpoint for updating user data."""
+            try:
+                data = request.get_json()
+                user_text = data.get('user_text', '').strip()
+                
+                # Validate user input (basic sanitization)
+                if len(user_text) > 500:  # Limit to 500 characters
+                    return jsonify({"error": "User data too long (max 500 characters)"}), 400
+                
+                # Update stored user data
+                self.user_input_data = user_text if user_text else None
+                
+                return jsonify({
+                    "success": True,
+                    "message": "User data updated successfully",
+                    "user_data": self.user_input_data
+                })
+                
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
+        
+        @self.app.route('/api/user-data', methods=['GET'])
+        def get_user_data():
+            """API endpoint for getting current user data."""
+            return jsonify({
+                "user_data": self.user_input_data
+            })
     
     def _setup_websocket_events(self) -> None:
         """Setup SocketIO events for real-time updates."""
@@ -217,6 +254,29 @@ class QRLiveWebServer:
             """Handle client request for QR update."""
             if self.current_qr_data and self.current_qr_image:
                 self._send_qr_update_to_client()
+                
+        @self.socketio.on('update_user_data')
+        def handle_user_data_update(data):
+            """Handle user data update from client."""
+            try:
+                user_text = data.get('user_text', '').strip()
+                
+                # Validate user input
+                if len(user_text) > 500:
+                    emit('user_data_error', {"error": "User data too long (max 500 characters)"})
+                    return
+                
+                # Update stored user data
+                self.user_input_data = user_text if user_text else None
+                
+                # Broadcast update to all clients
+                self.socketio.emit('user_data_updated', {
+                    "user_data": self.user_input_data,
+                    "timestamp": datetime.utcnow().isoformat()
+                })
+                
+            except Exception as e:
+                emit('user_data_error', {"error": str(e)})
     
     def _broadcast_qr_update(self) -> None:
         """Broadcast QR update to all connected clients."""

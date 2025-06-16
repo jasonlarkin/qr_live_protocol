@@ -207,6 +207,14 @@
                                 <em>No blockchain data available</em>
                             </div>
                         </div>
+                        
+                        <!-- User Data Info -->
+                        <div class="info-card">
+                            <h6><i class="bi bi-person-circle"></i> User Message</h6>
+                            <div id="user-data-display" class="hash-display">
+                                <em>No user message</em>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -214,6 +222,32 @@
             <!-- Controls/Statistics Column -->
             <div class="col-lg-4 col-md-6">
                 <div class="qr-container">
+                    <h4>User Input</h4>
+                    
+                    <div class="info-card">
+                        <h6><i class="bi bi-pencil-square"></i> Custom Message</h6>
+                        <div class="mb-3">
+                            <textarea 
+                                class="form-control" 
+                                id="user-text-input" 
+                                rows="3" 
+                                placeholder="Enter text to include in QR codes..."
+                                maxlength="500"
+                                oninput="updateUserData()">
+                            </textarea>
+                            <div class="form-text">
+                                <small id="char-counter">0/500 characters</small>
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button class="btn btn-success" onclick="saveUserData()">
+                                <i class="bi bi-check-circle"></i> Save Message
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
                     <h4>Live Statistics</h4>
                     
                     <div class="info-card">
@@ -273,6 +307,7 @@
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
             initializeSocketIO();
+            loadUserData();
         });
         
         function initializeSocketIO() {
@@ -294,6 +329,12 @@
                 updateQRDisplay(data);
                 updateCount++;
                 updateStatistics();
+            });
+            
+            socket.on('user_data_updated', function(data) {
+                console.log('User data updated:', data);
+                document.getElementById('user-text-input').value = data.user_data || '';
+                updateCharacterCounter();
             });
         }
         
@@ -339,6 +380,9 @@
             
             // Update blockchain info
             updateBlockchainInfo(data.qr_data.blockchain_hashes);
+            
+            // Update user data display
+            updateUserDataDisplay(data.qr_data.user_data);
         }
         
         function updateVerificationBadges(qrData) {
@@ -370,16 +414,32 @@
             
             let html = '';
             for (const [chain, hash] of Object.entries(blockchainHashes)) {
-                const hashShort = hash.substring(0, 16) + '...';
                 html += `
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <strong>${chain.charAt(0).toUpperCase() + chain.slice(1)}:</strong>
-                        <code class="hash-display">${hashShort}</code>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong>${chain.charAt(0).toUpperCase() + chain.slice(1)}:</strong>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="copyText('${hash}')" title="Copy hash">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                        </div>
+                        <div class="hash-display" style="font-size: 0.75em; line-height: 1.2; word-break: break-all;">
+                            ${hash}
+                        </div>
                     </div>
                 `;
             }
             
             blockchainInfo.innerHTML = html;
+        }
+        
+        function updateUserDataDisplay(userData) {
+            const userDataDisplay = document.getElementById('user-data-display');
+            
+            if (userData && userData.user_text) {
+                userDataDisplay.innerHTML = userData.user_text;
+            } else {
+                userDataDisplay.innerHTML = '<em>No user message</em>';
+            }
         }
         
         function updateStatistics() {
@@ -424,6 +484,83 @@
                 alert('Failed to copy QR data');
             });
         }
+        
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                // Show brief success indication
+                event.target.innerHTML = '<i class="bi bi-check"></i>';
+                setTimeout(() => {
+                    event.target.innerHTML = '<i class="bi bi-clipboard"></i>';
+                }, 1000);
+            }).catch(function(err) {
+                console.error('Failed to copy: ', err);
+                alert('Failed to copy text');
+            });
+        }
+        
+        // User Input Functions
+        function updateUserData() {
+            updateCharacterCounter();
+        }
+        
+        function updateCharacterCounter() {
+            const textInput = document.getElementById('user-text-input');
+            const counter = document.getElementById('char-counter');
+            const currentLength = textInput.value.length;
+            counter.textContent = `${currentLength}/500 characters`;
+            
+            if (currentLength > 450) {
+                counter.style.color = '#dc3545';
+            } else if (currentLength > 400) {
+                counter.style.color = '#ffc107';
+            } else {
+                counter.style.color = '#6c757d';
+            }
+        }
+        
+        function saveUserData() {
+            const textInput = document.getElementById('user-text-input');
+            const userData = textInput.value.trim();
+            
+            if (socket && socket.connected) {
+                socket.emit('update_user_data', { user_text: userData });
+            } else {
+                // Fallback to HTTP API
+                fetch('/api/user-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ user_text: userData })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('User data saved successfully!');
+                    } else {
+                        alert('Error saving user data: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to save user data');
+                });
+            }
+        }
+        
+        function loadUserData() {
+            fetch('/api/user-data')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.user_data) {
+                        document.getElementById('user-text-input').value = data.user_data;
+                        updateCharacterCounter();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading user data:', error);
+                });
+        }
     </script>
 </body>
-</html> 
+</html>

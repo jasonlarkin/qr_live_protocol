@@ -71,6 +71,9 @@ class QRLiveProtocol:
         self._update_thread: Optional[threading.Thread] = None
         self._callbacks: List[Callable[[QRData, bytes], None]] = []
         
+        # User data callback for external input
+        self._user_data_callback: Optional[Callable[[], Optional[str]]] = None
+        
         # Performance tracking
         self._last_update_time = 0
         self._update_count = 0
@@ -88,6 +91,15 @@ class QRLiveProtocol:
         """Remove previously added callback."""
         if callback in self._callbacks:
             self._callbacks.remove(callback)
+    
+    def set_user_data_callback(self, callback: Callable[[], Optional[str]]) -> None:
+        """
+        Set callback function to get user data for QR generation.
+        
+        Args:
+            callback: Function that returns user input string or None
+        """
+        self._user_data_callback = callback
     
     def start_live_generation(self) -> None:
         """Start continuous QR code generation in background thread."""
@@ -215,8 +227,18 @@ class QRLiveProtocol:
             try:
                 start_time = time.time()
                 
-                # Generate new QR code
-                qr_data, qr_image = self.generate_single_qr()
+                # Get user data from callback if available
+                user_data = None
+                if self._user_data_callback:
+                    try:
+                        user_text = self._user_data_callback()
+                        if user_text:
+                            user_data = {"user_text": user_text}
+                    except Exception as e:
+                        print(f"User data callback error: {e}")
+                
+                # Generate new QR code with user data
+                qr_data, qr_image = self.generate_single_qr(user_data)
                 
                 # Notify all callbacks
                 for callback in self._callbacks:

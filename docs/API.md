@@ -51,6 +51,10 @@ qr_data, qr_image = qrlp.generate_single_qr()
 # With custom data
 custom_data = {"event": "livestream", "video_id": "abc123"}
 qr_data, qr_image = qrlp.generate_single_qr(custom_data)
+
+# With user text input (as would be provided by web interface)
+user_data = {"user_text": "Welcome to my livestream!"}
+qr_data, qr_image = qrlp.generate_single_qr(user_data)
 ```
 
 ##### `verify_qr_data(qr_json)`
@@ -114,7 +118,7 @@ class QRData:
     identity_hash: str               # SHA-256 identity hash
     blockchain_hashes: Dict[str, str] # Chain -> block hash mapping
     time_server_verification: Dict    # Time server verification data
-    user_data: Optional[Dict] = None  # Optional user data
+    user_data: Optional[Dict] = None  # Optional user data (includes user_text)
     sequence_number: int = 0         # Sequential number
 ```
 
@@ -243,6 +247,42 @@ Verify QR code data.
 }
 ```
 
+#### `GET /api/user-data`
+Get current user input data.
+
+**Response:**
+```json
+{
+  "user_data": "User's custom message text"
+}
+```
+
+#### `POST /api/user-data`
+Update user input data to be included in QR codes.
+
+**Request:**
+```json
+{
+  "user_text": "Custom message to include in QR codes"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "User data updated successfully",
+  "user_data": "Custom message to include in QR codes"
+}
+```
+
+**Error Response:**
+```json
+{
+  "error": "User data too long (max 500 characters)"
+}
+```
+
 ## WebSocket API
 
 Real-time updates via Socket.IO.
@@ -278,6 +318,34 @@ Request current QR code data.
 
 ```javascript
 socket.emit('request_qr_update');
+```
+
+#### `update_user_data`
+Send user data update to server.
+
+```javascript
+socket.emit('update_user_data', {
+    user_text: "Custom message for QR codes"
+});
+```
+
+#### `user_data_updated`
+Triggered when user data is updated (broadcasted to all clients).
+
+```javascript
+socket.on('user_data_updated', function(data) {
+    console.log('User data updated:', data.user_data);
+    console.log('Timestamp:', data.timestamp);
+});
+```
+
+#### `user_data_error`
+Triggered when user data update fails.
+
+```javascript
+socket.on('user_data_error', function(error) {
+    console.log('User data error:', error.error);
+});
 ```
 
 ## Command Line Interface
