@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QRLP - Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid #00ffff;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            color: #00ffff;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+        }
+        
+        .dashboard {
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.3);
+        }
+        
+        .stat-title {
+            font-size: 1.1rem;
+            color: #00ffff;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-description {
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-online {
+            background: #00ff00;
+            box-shadow: 0 0 10px #00ff00;
+        }
+        
+        .status-offline {
+            background: #ff0000;
+            box-shadow: 0 0 10px #ff0000;
+        }
+        
+        .status-warning {
+            background: #ffaa00;
+            box-shadow: 0 0 10px #ffaa00;
+        }
+        
+        .section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .section h2 {
+            color: #00ffff;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        
+        .log-entry {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            font-family: monospace;
+            border-left: 3px solid #00ffff;
+        }
+        
+        .log-timestamp {
+            color: #888;
+            margin-right: 10px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #00ffff, #0080ff);
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 255, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(45deg, #ff4444, #cc0000);
+            color: #fff;
+        }
+        
+        .progress-bar {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            height: 20px;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #00ffff, #0080ff);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+        }
+        
+        .data-table th {
+            background: rgba(0, 255, 255, 0.2);
+            color: #00ffff;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                padding: 15px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔲 QRLP Admin Dashboard</h1>
+        <p>Real-time monitoring and control for QR Live Protocol</p>
+    </div>
+    
+    <div class="dashboard">
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-title">System Status</div>
+                <div class="stat-value">
+                    <span class="status-indicator status-online" id="systemStatus"></span>
+                    <span id="systemStatusText">Online</span>
+                </div>
+                <div class="stat-description">Server and services running</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-title">QR Codes Generated</div>
+                <div class="stat-value" id="qrGenerated">0</div>
+                <div class="stat-description">Total since startup</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-title">Active Connections</div>
+                <div class="stat-value" id="activeConnections">0</div>
+                <div class="stat-description">WebSocket and web clients</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-title">Blockchain Verified</div>
+                <div class="stat-value" id="blockchainCount">0</div>
+                <div class="stat-description">Active blockchain connections</div>
+            </div>
+        </div>
+        
+        <!-- Controls -->
+        <div class="section">
+            <h2>System Controls</h2>
+            <div class="controls">
+                <button class="btn" onclick="refreshData()">🔄 Refresh Data</button>
+                <button class="btn" onclick="testBlockchain()">🔗 Test Blockchain</button>
+                <button class="btn" onclick="viewLogs()">📄 View Logs</button>
+                <button class="btn btn-danger" onclick="restartServices()">🔄 Restart Services</button>
+            </div>
+        </div>
+        
+        <!-- Blockchain Status -->
+        <div class="section">
+            <h2>Blockchain Services</h2>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Chain</th>
+                        <th>Status</th>
+                        <th>Block Height</th>
+                        <th>Last Hash</th>
+                        <th>Last Update</th>
+                    </tr>
+                </thead>
+                <tbody id="blockchainTable">
+                    <tr>
+                        <td>Bitcoin</td>
+                        <td><span class="status-indicator status-warning"></span>Connecting...</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>Ethereum</td>
+                        <td><span class="status-indicator status-warning"></span>Connecting...</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td>Litecoin</td>
+                        <td><span class="status-indicator status-warning"></span>Connecting...</td>
+                        <td>-</td>
+                        <td>-</td>
+                        <td>-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Recent Activity -->
+        <div class="section">
+            <h2>Recent Activity</h2>
+            <div id="activityLog">
+                <div class="log-entry">
+                    <span class="log-timestamp">[{{ current_time }}]</span>
+                    Admin dashboard loaded
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dashboard functionality
+        function refreshData() {
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    updateDashboard(data);
+                    addLogEntry('Dashboard data refreshed');
+                })
+                .catch(error => {
+                    addLogEntry('Error refreshing data: ' + error.message);
+                });
+        }
+        
+        function updateDashboard(data) {
+            // Update statistics if available
+            if (data.qr_updates_sent !== undefined) {
+                document.getElementById('qrGenerated').textContent = data.qr_updates_sent;
+            }
+            
+            if (data.websocket_connections !== undefined) {
+                document.getElementById('activeConnections').textContent = data.websocket_connections;
+            }
+        }
+        
+        function testBlockchain() {
+            addLogEntry('Testing blockchain connections...');
+            // This would trigger blockchain verification test
+        }
+        
+        function viewLogs() {
+            addLogEntry('Opening detailed logs...');
+            // This would show detailed system logs
+        }
+        
+        function restartServices() {
+            if (confirm('Are you sure you want to restart QRLP services?')) {
+                addLogEntry('Restarting services...');
+                // This would restart the services
+            }
+        }
+        
+        function addLogEntry(message) {
+            const log = document.getElementById('activityLog');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span>${message}`;
+            
+            log.insertBefore(entry, log.firstChild);
+            
+            // Keep only last 10 entries
+            while (log.children.length > 10) {
+                log.removeChild(log.lastChild);
+            }
+        }
+        
+        // Auto-refresh every 10 seconds
+        setInterval(refreshData, 10000);
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            addLogEntry('Admin dashboard initialized');
+            refreshData();
+        });
+    </script>
+</body>
+</html> 

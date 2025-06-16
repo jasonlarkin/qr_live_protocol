@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Live Protocol - Live Display</title>
+    
+    <!-- Bootstrap CSS for responsive design -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .qr-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin: 20px 0;
+        }
+        
+        .qr-display {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .qr-image {
+            max-width: 100%;
+            height: auto;
+            border: 3px solid #f8f9fa;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-connected {
+            background-color: #28a745;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-disconnected {
+            background-color: #dc3545;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .info-card {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .timestamp {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .hash-display {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            word-break: break-all;
+            background: #f8f9fa;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin: 5px 0;
+        }
+        
+        .verification-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin: 2px;
+        }
+        
+        .verified {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .unverified {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .header-title {
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 0;
+        }
+        
+        .header-subtitle {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <div class="row justify-content-center">
+            <div class="col-12 text-center mb-4">
+                <h1 class="header-title">🔲 QR Live Protocol</h1>
+                <p class="header-subtitle">Live, Verifiable QR Codes for Streaming</p>
+            </div>
+        </div>
+        
+        <div class="row justify-content-center">
+            <!-- QR Display Column -->
+            <div class="col-lg-8 col-md-10">
+                <div class="qr-container">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="mb-0">Live QR Code</h3>
+                        <div class="connection-status">
+                            <span class="status-indicator" id="status-indicator"></span>
+                            <span id="connection-status">Connecting...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="qr-display" id="qr-display">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Waiting for QR code...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- QR Information -->
+                    <div id="qr-info" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-card">
+                                    <h6><i class="bi bi-clock"></i> Timestamp</h6>
+                                    <div class="timestamp" id="qr-timestamp">-</div>
+                                </div>
+                                
+                                <div class="info-card">
+                                    <h6><i class="bi bi-hash"></i> Sequence</h6>
+                                    <div id="qr-sequence">#-</div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="info-card">
+                                    <h6><i class="bi bi-fingerprint"></i> Identity</h6>
+                                    <div class="hash-display" id="qr-identity">-</div>
+                                </div>
+                                
+                                <div class="info-card">
+                                    <h6><i class="bi bi-shield-check"></i> Verification</h6>
+                                    <div id="verification-badges">
+                                        <span class="verification-badge unverified">Time Server</span>
+                                        <span class="verification-badge unverified">Blockchain</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Blockchain Info -->
+                        <div class="info-card">
+                            <h6><i class="bi bi-link-45deg"></i> Blockchain Verification</h6>
+                            <div id="blockchain-info">
+                                <em>No blockchain data available</em>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Controls/Statistics Column -->
+            <div class="col-lg-4 col-md-6">
+                <div class="qr-container">
+                    <h4>Live Statistics</h4>
+                    
+                    <div class="info-card">
+                        <h6>Connection</h6>
+                        <div id="server-url">{{ server_url }}</div>
+                        <small class="text-muted">Server URL</small>
+                    </div>
+                    
+                    <div class="info-card">
+                        <h6>Updates</h6>
+                        <div id="update-count">0</div>
+                        <small class="text-muted">Total QR updates received</small>
+                    </div>
+                    
+                    <div class="info-card">
+                        <h6>Last Update</h6>
+                        <div id="last-update">Never</div>
+                        <small class="text-muted">Time of last QR update</small>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" onclick="requestUpdate()">
+                            <i class="bi bi-arrow-clockwise"></i> Request Update
+                        </button>
+                        
+                        <button class="btn btn-outline-secondary" onclick="downloadQR()">
+                            <i class="bi bi-download"></i> Download QR
+                        </button>
+                        
+                        <button class="btn btn-outline-info" onclick="copyQRData()">
+                            <i class="bi bi-clipboard"></i> Copy Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <!-- Socket.IO for real-time updates -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        // Global variables
+        let socket;
+        let currentQRData = null;
+        let updateCount = 0;
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSocketIO();
+        });
+        
+        function initializeSocketIO() {
+            socket = io();
+            
+            socket.on('connect', function() {
+                console.log('Connected to QRLP server');
+                updateConnectionStatus(true);
+                socket.emit('request_qr_update');
+            });
+            
+            socket.on('disconnect', function() {
+                console.log('Disconnected from QRLP server');
+                updateConnectionStatus(false);
+            });
+            
+            socket.on('qr_update', function(data) {
+                console.log('Received QR update:', data);
+                updateQRDisplay(data);
+                updateCount++;
+                updateStatistics();
+            });
+        }
+        
+        function updateConnectionStatus(connected) {
+            const indicator = document.getElementById('status-indicator');
+            const status = document.getElementById('connection-status');
+            
+            if (connected) {
+                indicator.className = 'status-indicator status-connected';
+                status.textContent = 'Connected';
+            } else {
+                indicator.className = 'status-indicator status-disconnected';
+                status.textContent = 'Disconnected';
+            }
+        }
+        
+        function updateQRDisplay(data) {
+            currentQRData = data;
+            
+            // Update QR image
+            const qrDisplay = document.getElementById('qr-display');
+            qrDisplay.innerHTML = `
+                <img src="${data.qr_image}" alt="Live QR Code" class="qr-image">
+            `;
+            
+            // Show and update QR information
+            const qrInfo = document.getElementById('qr-info');
+            qrInfo.style.display = 'block';
+            
+            // Update timestamp
+            const timestamp = new Date(data.qr_data.timestamp);
+            document.getElementById('qr-timestamp').textContent = timestamp.toLocaleString();
+            
+            // Update sequence
+            document.getElementById('qr-sequence').textContent = `#${data.qr_data.sequence_number}`;
+            
+            // Update identity (show first 32 chars)
+            const identityShort = data.qr_data.identity_hash.substring(0, 32) + '...';
+            document.getElementById('qr-identity').textContent = identityShort;
+            
+            // Update verification badges
+            updateVerificationBadges(data.qr_data);
+            
+            // Update blockchain info
+            updateBlockchainInfo(data.qr_data.blockchain_hashes);
+        }
+        
+        function updateVerificationBadges(qrData) {
+            const badges = document.getElementById('verification-badges');
+            badges.innerHTML = '';
+            
+            // Time server verification
+            if (qrData.time_server_verification && Object.keys(qrData.time_server_verification).length > 0) {
+                badges.innerHTML += '<span class="verification-badge verified">Time Server ✓</span>';
+            } else {
+                badges.innerHTML += '<span class="verification-badge unverified">Time Server ✗</span>';
+            }
+            
+            // Blockchain verification
+            if (qrData.blockchain_hashes && Object.keys(qrData.blockchain_hashes).length > 0) {
+                badges.innerHTML += '<span class="verification-badge verified">Blockchain ✓</span>';
+            } else {
+                badges.innerHTML += '<span class="verification-badge unverified">Blockchain ✗</span>';
+            }
+        }
+        
+        function updateBlockchainInfo(blockchainHashes) {
+            const blockchainInfo = document.getElementById('blockchain-info');
+            
+            if (!blockchainHashes || Object.keys(blockchainHashes).length === 0) {
+                blockchainInfo.innerHTML = '<em>No blockchain data available</em>';
+                return;
+            }
+            
+            let html = '';
+            for (const [chain, hash] of Object.entries(blockchainHashes)) {
+                const hashShort = hash.substring(0, 16) + '...';
+                html += `
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <strong>${chain.charAt(0).toUpperCase() + chain.slice(1)}:</strong>
+                        <code class="hash-display">${hashShort}</code>
+                    </div>
+                `;
+            }
+            
+            blockchainInfo.innerHTML = html;
+        }
+        
+        function updateStatistics() {
+            document.getElementById('update-count').textContent = updateCount;
+            document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+        }
+        
+        function requestUpdate() {
+            if (socket && socket.connected) {
+                socket.emit('request_qr_update');
+            } else {
+                alert('Not connected to server');
+            }
+        }
+        
+        function downloadQR() {
+            if (!currentQRData) {
+                alert('No QR code available to download');
+                return;
+            }
+            
+            // Create download link
+            const link = document.createElement('a');
+            link.href = currentQRData.qr_image;
+            link.download = `qrlp_qr_${currentQRData.qr_data.sequence_number}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        function copyQRData() {
+            if (!currentQRData) {
+                alert('No QR data available to copy');
+                return;
+            }
+            
+            const dataText = JSON.stringify(currentQRData.qr_data, null, 2);
+            navigator.clipboard.writeText(dataText).then(function() {
+                alert('QR data copied to clipboard!');
+            }).catch(function(err) {
+                console.error('Failed to copy: ', err);
+                alert('Failed to copy QR data');
+            });
+        }
+    </script>
+</body>
+</html> 

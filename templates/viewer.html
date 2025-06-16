@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QRLP - QR Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        .qr-container {
+            text-align: center;
+            background: linear-gradient(45deg, #1a1a1a, #2a2a2a);
+            border: 2px solid #333;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.3);
+            animation: pulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 50px rgba(0, 255, 255, 0.3); }
+            50% { box-shadow: 0 0 80px rgba(0, 255, 255, 0.6); }
+        }
+        
+        .qr-title {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #00ffff;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+        }
+        
+        .qr-image {
+            max-width: 500px;
+            max-height: 500px;
+            border: 4px solid #00ffff;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+            background: white;
+            padding: 10px;
+        }
+        
+        .qr-info {
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            text-align: left;
+            font-size: 1.1rem;
+        }
+        
+        .info-item {
+            background: rgba(0, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #00ffff;
+        }
+        
+        .info-label {
+            color: #00ffff;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            color: #fff;
+            font-family: monospace;
+            word-break: break-all;
+        }
+        
+        .status-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #00ff00;
+            box-shadow: 0 0 10px #00ff00;
+            animation: blink 1s infinite;
+        }
+        
+        .status-indicator.disconnected {
+            background: #ff0000;
+            box-shadow: 0 0 10px #ff0000;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+        
+        .timestamp {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 1.2rem;
+            color: #00ffff;
+            font-family: monospace;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #00ffff;
+            font-size: 1.5rem;
+        }
+        
+        .sequence-number {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 1.5rem;
+            color: #00ffff;
+            font-family: monospace;
+        }
+        
+        @media (max-width: 768px) {
+            .qr-container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .qr-image {
+                max-width: 90vw;
+                max-height: 90vw;
+            }
+            
+            .qr-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="status-indicator" id="statusIndicator"></div>
+    <div class="sequence-number" id="sequenceNumber">#0</div>
+    <div class="timestamp" id="timestamp">Loading...</div>
+    
+    <div class="qr-container">
+        <h1 class="qr-title">QR Live Protocol</h1>
+        <div id="qrDisplay" class="loading">
+            <p>🔄 Waiting for QR code...</p>
+        </div>
+        <div class="qr-info" id="qrInfo" style="display: none;">
+            <div class="info-item">
+                <span class="info-label">Identity Hash:</span>
+                <span class="info-value" id="identityHash">-</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Blockchain Verified:</span>
+                <span class="info-value" id="blockchainInfo">-</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Time Servers:</span>
+                <span class="info-value" id="timeServers">-</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Generated:</span>
+                <span class="info-value" id="generatedTime">-</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        // Initialize WebSocket connection
+        const socket = io();
+        
+        // Elements
+        const qrDisplay = document.getElementById('qrDisplay');
+        const qrInfo = document.getElementById('qrInfo');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const timestamp = document.getElementById('timestamp');
+        const sequenceNumber = document.getElementById('sequenceNumber');
+        
+        // Connection status
+        let isConnected = false;
+        
+        // Update timestamp every second
+        function updateTimestamp() {
+            const now = new Date();
+            timestamp.textContent = now.toISOString().slice(0, 19).replace('T', ' ') + ' UTC';
+        }
+        
+        setInterval(updateTimestamp, 1000);
+        updateTimestamp();
+        
+        // Socket event handlers
+        socket.on('connect', function() {
+            console.log('Connected to QRLP server');
+            isConnected = true;
+            statusIndicator.classList.remove('disconnected');
+            socket.emit('request_qr_update');
+        });
+        
+        socket.on('disconnect', function() {
+            console.log('Disconnected from QRLP server');
+            isConnected = false;
+            statusIndicator.classList.add('disconnected');
+        });
+        
+        socket.on('qr_update', function(data) {
+            console.log('Received QR update:', data);
+            updateQRDisplay(data);
+        });
+        
+        // Update QR display
+        function updateQRDisplay(data) {
+            if (data.qr_image && data.qr_data) {
+                // Update QR image
+                qrDisplay.innerHTML = `<img src="${data.qr_image}" class="qr-image" alt="QRLP QR Code">`;
+                
+                // Update sequence number
+                sequenceNumber.textContent = `#${data.qr_data.sequence_number || 0}`;
+                
+                // Update info
+                document.getElementById('identityHash').textContent = 
+                    (data.qr_data.identity_hash || '').substring(0, 16) + '...';
+                
+                // Blockchain info
+                const blockchains = data.qr_data.blockchain_hashes || {};
+                const blockchainList = Object.keys(blockchains).join(', ') || 'None';
+                document.getElementById('blockchainInfo').textContent = blockchainList;
+                
+                // Time servers
+                const timeServers = data.qr_data.time_server_verification || {};
+                const serverCount = Object.keys(timeServers).length;
+                document.getElementById('timeServers').textContent = `${serverCount} servers`;
+                
+                // Generated time
+                const genTime = data.qr_data.timestamp || '';
+                document.getElementById('generatedTime').textContent = 
+                    genTime.slice(0, 19).replace('T', ' ');
+                
+                // Show info panel
+                qrInfo.style.display = 'grid';
+            }
+        }
+        
+        // Fallback: Poll for updates if WebSocket fails
+        function pollForUpdates() {
+            if (!isConnected) {
+                fetch('/api/qr/current')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.qr_image && data.qr_data) {
+                            updateQRDisplay(data);
+                        }
+                    })
+                    .catch(error => console.log('Poll failed:', error));
+            }
+        }
+        
+        setInterval(pollForUpdates, 5000);
+        
+        // Request initial update
+        setTimeout(() => {
+            if (isConnected) {
+                socket.emit('request_qr_update');
+            } else {
+                pollForUpdates();
+            }
+        }, 1000);
+    </script>
+</body>
+</html> 

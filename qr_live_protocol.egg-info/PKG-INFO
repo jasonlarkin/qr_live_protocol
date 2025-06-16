@@ -1,0 +1,294 @@
+Metadata-Version: 2.4
+Name: qr-live-protocol
+Version: 1.0.0
+Summary: Generate live, verifiable QR codes for streaming and official video releases
+Home-page: https://github.com/your-org/qr_live_protocol
+Author: QRLP Development Team
+Author-email: contact@qrlp.org
+Project-URL: Bug Reports, https://github.com/your-org/qr_live_protocol/issues
+Project-URL: Source, https://github.com/your-org/qr_live_protocol
+Project-URL: Documentation, https://qrlp.readthedocs.io/
+Keywords: qr-code,livestream,verification,blockchain,timestamp,cryptography,video,authentication
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: Topic :: Multimedia :: Video
+Classifier: Topic :: Security :: Cryptography
+Classifier: Topic :: Internet :: WWW/HTTP :: Dynamic Content
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: qrcode[pil]==7.4.2
+Requires-Dist: Pillow>=10.0.0
+Requires-Dist: Flask==3.0.0
+Requires-Dist: Flask-CORS==4.0.0
+Requires-Dist: Flask-SocketIO==5.3.6
+Requires-Dist: click==8.1.7
+Requires-Dist: ntplib==0.4.0
+Requires-Dist: requests>=2.31.0
+Requires-Dist: python-dateutil>=2.8.2
+Provides-Extra: full
+Requires-Dist: PyYAML>=6.0.1; extra == "full"
+Requires-Dist: pyzbar>=0.1.9; extra == "full"
+Requires-Dist: opencv-python>=4.8.0; extra == "full"
+Requires-Dist: cryptography>=41.0.0; extra == "full"
+Provides-Extra: dev
+Requires-Dist: pytest>=7.4.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.1.0; extra == "dev"
+Requires-Dist: black>=23.0.0; extra == "dev"
+Requires-Dist: flake8>=6.0.0; extra == "dev"
+Requires-Dist: mypy>=1.5.0; extra == "dev"
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: keywords
+Dynamic: project-url
+Dynamic: provides-extra
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
+# QR Live Protocol (QRLP)
+
+A comprehensive system for generating live, verifiable QR codes with cryptographic authentication for livestreaming and official video releases.
+
+## Overview
+
+QRLP is built on the qrkey protocol, extending it to provide real-time QR code generation with multi-layered verification including:
+
+- **Live Time Synchronization** - Multiple NTP servers and HTTP time APIs
+- **Blockchain Verification** - Current block hashes from Bitcoin, Ethereum, and other chains  
+- **Identity Authentication** - Cryptographic hashes of user files and system information
+- **Web Display Interface** - Real-time browser display with WebSocket updates
+- **Comprehensive CLI** - Full command-line interface for all operations
+
+## Quick Start
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Start live QR display
+python -m src.cli live
+
+# Generate single QR code
+python -m src.cli generate --output qr_code.png
+
+# Run comprehensive demo
+python examples/livestream_demo.py
+```
+
+## Features
+
+### 🔲 Live QR Generation
+- Real-time QR code updates (configurable interval)
+- Multiple QR styles (live, professional, minimal)
+- Text overlays with verification information
+- Chunked QR codes for large data
+
+### ⏰ Time Verification
+- Multi-server NTP synchronization
+- HTTP time API fallbacks
+- Median offset calculation for accuracy
+- Configurable time drift tolerance
+
+### 🔗 Blockchain Integration
+- Bitcoin, Ethereum, Litecoin, Dogecoin support
+- Automatic block hash retrieval and caching
+- Configurable update intervals
+- Resilient to API failures
+
+### 🆔 Identity Management
+- System fingerprinting (MAC address, hostname, etc.)
+- File hash integration
+- Custom data support
+- Export/import capabilities
+
+### 🌐 Web Interface
+- Beautiful, responsive live display
+- Real-time WebSocket updates
+- Statistics and monitoring
+- Download and verification tools
+- Integration-ready viewer mode
+
+### 📱 Streaming Integration
+- Optimized for OBS Studio browser sources
+- CORS-enabled for external access
+- Multiple display formats
+- Performance monitoring
+
+## Architecture
+
+```
+┌─────────────────────┐
+│   QRLiveProtocol    │     Core coordinator
+├─────────────────────┤
+│ - Thread management │
+│ - Callback system   │
+│ - Live generation   │
+└──────────┬──────────┘
+           │
+    ┌──────┴──────┐
+    │             │
+    ▼             ▼
+┌─────────┐  ┌─────────────┐
+│QRGenerator│  │TimeProvider │
+├─────────┤  ├─────────────┤
+│- Styles │  │- NTP sync   │
+│- Caching│  │- HTTP APIs  │
+│- Text   │  │- Fallbacks  │
+└─────────┘  └─────────────┘
+    │             │
+    ▼             ▼
+┌────────────┐ ┌──────────────┐
+│Blockchain  │ │Identity      │
+│Verifier    │ │Manager       │
+├────────────┤ ├──────────────┤
+│- Multi-    │ │- File hashes │
+│  chain API │ │- System info │
+│- Caching   │ │- Custom data │
+└────────────┘ └──────────────┘
+```
+
+## Project Structure
+
+```
+qr_live_protocol/
+├── src/                    # Main source code
+│   ├── __init__.py        # Package initialization
+│   ├── core.py            # QRLiveProtocol main class
+│   ├── qr_generator.py    # QR code generation
+│   ├── time_provider.py   # Time synchronization
+│   ├── blockchain_verifier.py  # Blockchain verification
+│   ├── identity_manager.py     # Identity management
+│   ├── web_server.py      # Flask web interface
+│   ├── config.py          # Configuration management
+│   ├── cli.py             # Command-line interface
+│   └── __main__.py        # Module entry point
+├── docs/                  # Documentation
+│   └── README.md          # Comprehensive documentation
+├── examples/              # Example scripts
+│   └── livestream_demo.py # Full demonstration
+├── templates/             # Web templates
+│   └── index.html         # Main web interface
+├── requirements.txt       # Python dependencies
+├── setup.py              # Package configuration
+└── README.md             # This file
+```
+
+## Usage Examples
+
+### Command Line Interface
+
+```bash
+# Start live streaming server
+qrlp live --port 8080 --interval 5
+
+# Generate single QR with blockchain verification
+qrlp generate --style professional --include-text
+
+# Verify QR code data
+qrlp verify '{"timestamp":"2025-01-11T...","identity_hash":"abc123..."}'
+
+# Check system status
+qrlp status
+
+# Create configuration file
+qrlp config-init --output config.json
+```
+
+### Python API
+
+```python
+from src import QRLiveProtocol, QRLPConfig
+
+# Initialize with custom configuration
+config = QRLPConfig()
+config.update_interval = 3.0
+config.blockchain_settings.enabled_chains = {"bitcoin", "ethereum"}
+
+qrlp = QRLiveProtocol(config)
+
+# Generate single QR code
+qr_data, qr_image = qrlp.generate_single_qr()
+
+# Start live generation with callback
+def handle_update(qr_data, qr_image):
+    print(f"New QR: #{qr_data.sequence_number}")
+
+qrlp.add_update_callback(handle_update)
+qrlp.start_live_generation()
+```
+
+## Configuration
+
+QRLP supports configuration via:
+- JSON/YAML files
+- Environment variables  
+- Command-line arguments
+- Python API
+
+Example configuration:
+
+```json
+{
+  "update_interval": 5.0,
+  "qr_settings": {
+    "error_correction_level": "M",
+    "box_size": 10
+  },
+  "blockchain_settings": {
+    "enabled_chains": ["bitcoin", "ethereum"],
+    "cache_duration": 300
+  },
+  "web_settings": {
+    "port": 8080,
+    "auto_open_browser": true
+  }
+}
+```
+
+## Dependencies
+
+Core dependencies:
+- `qrcode[pil]` - QR code generation
+- `Flask` + `Flask-SocketIO` - Web interface
+- `requests` - HTTP APIs
+- `ntplib` - NTP time synchronization
+- `click` - Command-line interface
+
+## Use Cases
+
+- **Livestreaming Authentication** - Prove video authenticity in real-time
+- **Official Video Releases** - Timestamped verification for announcements  
+- **Document Authentication** - Include in videos of document signings
+- **Event Verification** - Prove live event attendance and timing
+- **Content Creator Verification** - Authenticate original content creation
+
+## Security Features
+
+- Multi-layer verification (time, blockchain, identity)
+- Cryptographic identity hashing
+- Tamper-evident QR data
+- Configurable verification requirements
+- Secure fallback mechanisms
+
+## Performance
+
+- Optimized QR generation with caching
+- Efficient blockchain API usage
+- Non-blocking web interface
+- Configurable update intervals
+- Resource monitoring and statistics
+
+QRLP runs and displays a QR code in a browser window, which confirms the user's identity and time. For example it could display just the live time, or a combination of the time and the user's identity (file hash). Or QR code with multiple sources of information, like public blockchain hashes, and verified calls to time servers, to confirm the user's place in time. All encoded in a QR code, shown in the browser window along with the plain text of the information. For use in Livestreaming and official video releases. 
