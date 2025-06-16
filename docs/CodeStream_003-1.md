@@ -87,3 +87,5 @@ To verify QR codes shown during stream:
 ---
 
 *This demonstration showcases the current state of the QR Live Protocol as a foundation for building trustworthy, verifiable digital content in an era where authenticity verification is increasingly critical.*
+
+
