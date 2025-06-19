@@ -1,0 +1,224 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, 3.10, 3.11, 3.12]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v1
+      with:
+        version: "latest"
+    
+    - name: Cache uv dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          .venv
+          .uv/cache
+        key: ${{ runner.os }}-uv-${{ matrix.python-version }}-${{ hashFiles('**/pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-uv-${{ matrix.python-version }}-
+    
+    - name: Install dependencies
+      run: |
+        uv sync --frozen
+    
+    - name: Run tests with coverage
+      run: |
+        uv run pytest --cov=src --cov-report=xml --cov-report=term-missing
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v1
+      with:
+        version: "latest"
+    
+    - name: Install dependencies
+      run: |
+        uv sync --frozen --group dev
+    
+    - name: Run Black (code formatting)
+      run: |
+        uv run black --check --diff src/ tests/
+    
+    - name: Run Ruff (linting)
+      run: |
+        uv run ruff check src/ tests/
+    
+    - name: Run MyPy (type checking)
+      run: |
+        uv run mypy src/ --ignore-missing-imports
+
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v1
+      with:
+        version: "latest"
+    
+    - name: Install dependencies
+      run: |
+        uv sync --frozen --group dev
+    
+    - name: Run Bandit (security checks)
+      run: |
+        uv run bandit -r src/ -f json -o bandit-report.json || true
+    
+    - name: Run Safety (dependency vulnerability check)
+      run: |
+        uv run safety check --json --output safety-report.json || true
+
+  integration:
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v1
+      with:
+        version: "latest"
+    
+    - name: Install dependencies
+      run: |
+        uv sync --frozen
+    
+    - name: Run integration tests
+      run: |
+        uv run pytest tests/integration/ -v --cov=src --cov-report=term-missing
+    
+    - name: Test CLI installation
+      run: |
+        uv run qrlp --help
+
+  system:
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v1
+      with:
+        version: "latest"
+    
+    - name: Install dependencies
+      run: |
+        uv sync --frozen
+    
+    - name: Run system tests
+      run: |
+        uv run pytest tests/system/ -v --cov=src --cov-report=term-missing
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build Docker image
+      run: |
+        docker build -t qrlp:test .
+    
+    - name: Test Docker image
+      run: |
+        docker run --rm -d --name qrlp-test -p 8080:8080 qrlp:test
+        sleep 10
+        curl -f http://localhost:8080/api/status || exit 1
+        docker stop qrlp-test
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [test, lint, security, integration, system, docker]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v1
+      with:
+        version: "latest"
+    
+    - name: Install build dependencies
+      run: |
+        uv sync --frozen --group dev
+    
+    - name: Build package
+      run: |
+        uv run python -m build
+    
+    - name: Check package
+      run: |
+        uv run twine check dist/*
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist
+        path: dist/ 

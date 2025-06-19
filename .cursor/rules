@@ -1,0 +1,138 @@
+# QR Live Protocol (QRLP) - Cursor Rules
+
+## Project Overview
+This is a Python project for generating live, verifiable QR codes with cryptographic authentication for livestreaming and official video releases.
+
+## Core Architecture
+- **Main Coordinator**: `src/core.py` - QRLiveProtocol class
+- **Components**: QRGenerator, TimeProvider, BlockchainVerifier, IdentityManager
+- **Web Interface**: Flask-based with WebSocket support
+- **CLI**: Click-based command line interface
+
+## Development Guidelines
+
+### Code Style
+- Follow PEP 8 standards
+- Use type hints for all function parameters and return values
+- Use dataclasses for configuration and data structures
+- Prefer composition over inheritance
+- Use async/await for I/O operations when appropriate
+
+### Testing Requirements
+- Write unit tests for all new functions
+- Use pytest as the testing framework
+- Maintain test coverage above 80%
+- Mock external dependencies (APIs, time servers, blockchain)
+- Include integration tests for complex features
+
+### Documentation Standards
+- Use Google-style docstrings for all public functions
+- Include type hints in docstrings
+- Update README.md for user-facing changes
+- Update API.md for developer-facing changes
+- Include examples in docstrings
+
+### Security Considerations
+- Never hardcode API keys or secrets
+- Use environment variables for configuration
+- Validate all external inputs
+- Implement proper error handling for network operations
+- Use cryptographic hashing for identity verification
+
+### Performance Guidelines
+- Cache expensive operations (blockchain API calls, time server queries)
+- Use threading for non-blocking operations
+- Implement proper cleanup in context managers
+- Monitor memory usage for long-running processes
+- Use connection pooling for HTTP requests
+
+## File Organization
+- `src/` - Core implementation
+- `tests/` - Test files (mirror src/ structure)
+- `docs/` - Documentation
+- `examples/` - Usage examples
+- `templates/` - Web interface templates
+
+## Common Patterns
+- Use dataclasses for configuration: `@dataclass class QRLPConfig`
+- Implement context managers: `__enter__` and `__exit__` methods
+- Use callbacks for extensibility: `add_update_callback()`
+- Implement statistics tracking: `get_statistics()` methods
+- Use factory methods for complex object creation
+
+## Testing Patterns
+- Mock external APIs: `@patch('requests.get')`
+- Use fixtures for common test data
+- Test both success and failure scenarios
+- Use parametrized tests for multiple inputs
+- Test edge cases and error conditions
+
+## Error Handling
+- Use specific exception types
+- Provide meaningful error messages
+- Log errors with appropriate levels
+- Implement graceful degradation
+- Return None or empty collections instead of raising for optional operations
+
+## Configuration Management
+- Use dataclasses for type safety
+- Support environment variables
+- Provide sensible defaults
+- Validate configuration on startup
+- Support JSON/YAML configuration files
+
+## Web Interface Guidelines
+- Use Flask for the web framework
+- Implement WebSocket for real-time updates
+- Use CORS for external access
+- Provide both viewer and admin interfaces
+- Include API endpoints for integration
+
+## CLI Guidelines
+- Use Click for command line interface
+- Provide help text for all commands
+- Use consistent command naming
+- Support configuration file loading
+- Include verbose/debug options
+
+## Dependencies
+- Keep dependencies minimal and well-maintained
+- Pin major versions for stability
+- Use optional dependencies for advanced features
+- Document all dependencies with purpose
+- Regular security updates
+
+## Git Workflow
+- Use conventional commit messages
+- Create feature branches for changes
+- Include tests with new features
+- Update documentation for user-facing changes
+- Reference issues in commit messages
+
+## Performance Monitoring
+- Track QR generation frequency
+- Monitor API response times
+- Log memory usage patterns
+- Track verification success rates
+- Monitor web interface performance
+
+## Security Best Practices
+- Validate all QR code data
+- Implement rate limiting for APIs
+- Use secure random number generation
+- Sanitize all user inputs
+- Implement proper session management
+
+## Integration Guidelines
+- Design for OBS Studio integration
+- Support multiple streaming platforms
+- Provide clean API interfaces
+- Include webhook support
+- Support custom branding
+
+## Troubleshooting
+- Implement comprehensive logging
+- Provide debug modes
+- Include health check endpoints
+- Document common issues
+- Provide diagnostic tools 

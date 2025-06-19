@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  qrlp:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - QRLP_LOG_LEVEL=INFO
+      - QRLP_WEB_HOST=0.0.0.0
+      - QRLP_WEB_PORT=8080
+    volumes:
+      # Mount source code for development
+      - ./src:/app/src:ro
+      - ./templates:/app/templates:ro
+      - ./examples:/app/examples:ro
+      - ./main.py:/app/main.py:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8080/api/status')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  qrlp-dev:
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8081:8080"
+    environment:
+      - QRLP_LOG_LEVEL=DEBUG
+      - QRLP_WEB_HOST=0.0.0.0
+      - QRLP_WEB_PORT=8080
+    volumes:
+      # Mount everything for development
+      - .:/app
+    command: ["uv", "run", "python", "main.py", "--port", "8080", "--host", "0.0.0.0"]
+    profiles:
+      - dev
+
+  qrlp-test:
+    build: 
+      context: .
+      dockerfile: Dockerfile.test
+    environment:
+      - QRLP_LOG_LEVEL=DEBUG
+    volumes:
+      - .:/app
+    command: ["uv", "run", "pytest", "-v", "--cov=src"]
+    profiles:
+      - test 
