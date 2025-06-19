@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "qr-live-protocol"
-version = "1.0.0"
-description = "Generate live, verifiable QR codes with cryptographic authentication for livestreaming and official video releases"
+name = "qr_live_protocol"
+version = "0.1.0"
+description = "Live, verifiable QR codes with cryptographic authentication for livestreaming and official video releases"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
@@ -39,6 +39,31 @@ dependencies = [
     "ntplib==0.4.0",
     "requests>=2.31.0",
     "python-dateutil>=2.8.2",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.hatch.envs.default]
+dependencies = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.11.1",
+    "pytest-asyncio>=0.21.1",
+    "pytest-xdist>=3.3.1",
+]
+
+[tool.hatch.envs.dev]
+dependencies = [
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5.0",
+    "bandit>=1.7.5",
+    "safety>=2.3.5",
+    "pre-commit>=3.4.0",
 ]
 
 [project.optional-dependencies]
@@ -80,16 +105,12 @@ Repository = "https://github.com/jasonlarkin/qr_live_protocol"
 Issues = "https://github.com/jasonlarkin/qr_live_protocol/issues"
 Discussions = "https://github.com/jasonlarkin/qr_live_protocol/discussions"
 
-[tool.hatch.build.targets.wheel]
-packages = ["src"]
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = [
-    "--strict-markers",
     "--strict-config",
     "--verbose",
     "--tb=short",
@@ -119,19 +140,27 @@ filterwarnings = [
 line-length = 88
 target-version = ['py38']
 include = '\.pyi?$'
-extend-exclude = '''
-/(
-  # directories
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | build
-  | dist
-)/
-'''
+
+[tool.ruff]
+target-version = "py38"
+line-length = 88
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
 
 [tool.mypy]
 python_version = "3.8"
@@ -185,25 +214,4 @@ exclude_lines = [
 
 [tool.bandit]
 exclude_dirs = ["tests"]
-skips = ["B101", "B601"]
-
-[tool.ruff]
-target-version = "py38"
-line-length = 88
-select = [
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings
-    "F",  # pyflakes
-    "I",  # isort
-    "B",  # flake8-bugbear
-    "C4", # flake8-comprehensions
-    "UP", # pyupgrade
-]
-ignore = [
-    "E501",  # line too long, handled by black
-    "B008",  # do not perform function calls in argument defaults
-    "C901",  # too complex
-]
-
-[tool.ruff.per-file-ignores]
-"__init__.py" = ["F401"] 
+skips = ["B101", "B601"] 
