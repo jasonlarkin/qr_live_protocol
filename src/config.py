@@ -169,9 +169,7 @@ class QRLPConfig:
                 try:
                     import yaml
                 except ImportError:
-                    raise ImportError(
-                        "PyYAML required for YAML config files"
-                    ) from None
+                    raise ImportError("PyYAML required for YAML config files") from None
                 with open(config_file) as f:
                     data = yaml.safe_load(f)
             else:

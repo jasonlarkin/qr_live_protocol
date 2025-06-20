@@ -12,12 +12,12 @@ __version__ = "1.0.0"
 __author__ = "QRLP Development Team (@docxology)"
 __email__ = "danielarifriedman@gmail.com"
 
-from .core import QRLiveProtocol
+from .blockchain_verifier import BlockchainVerifier
 from .config import QRLPConfig
+from .core import QRLiveProtocol
+from .identity_manager import IdentityManager
 from .qr_generator import QRGenerator
 from .time_provider import TimeProvider
-from .blockchain_verifier import BlockchainVerifier
-from .identity_manager import IdentityManager
 from .web_server import QRLiveWebServer
 
 __all__ = [

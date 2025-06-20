@@ -5,16 +5,15 @@ Handles user identity creation, management, and cryptographic hashing
 for QR code verification and authenticity.
 """
 
-import os
 import hashlib
-import platform
-import uuid
 import json
+import os
+import platform
 import time
+import uuid
+from dataclasses import asdict, dataclass
 from datetime import datetime
-from pathlib import Path
-from typing import Dict, Optional, Any, List
-from dataclasses import dataclass, asdict
+from typing import Any, Dict, Optional
 
 from .config import IdentitySettings
 
@@ -193,7 +192,7 @@ class IdentityManager:
             if not os.path.exists(file_path):
                 return False
 
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 data = json.load(f)
 
             # Reconstruct identity info
@@ -326,7 +325,7 @@ class IdentityManager:
                 "username": os.getenv("USER") or os.getenv("USERNAME") or "unknown",
                 "mac_address": ":".join(
                     [
-                        "{:02x}".format((uuid.getnode() >> ele) & 0xFF)
+                        f"{(uuid.getnode() >> ele) & 0xFF:02x}"
                         for ele in range(0, 8 * 6, 8)
                     ][::-1]
                 ),

@@ -5,16 +5,15 @@ Provides Flask-based web interface for displaying live QR codes in browser
 with real-time updates, status information, and verification details.
 """
 
-import os
 import base64
-import json
+import os
 import threading
 import webbrowser
-from datetime import datetime
-from typing import Dict, Optional, Any, Callable
 from dataclasses import asdict
+from datetime import datetime
+from typing import Callable, Dict, Optional
 
-from flask import Flask, render_template, jsonify, send_from_directory, request
+from flask import Flask, jsonify, render_template, request
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 

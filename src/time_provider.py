@@ -5,15 +5,14 @@ Handles time synchronization with multiple time servers and provides
 accurate timestamp verification for QR codes.
 """
 
-import time
-import socket
-import struct
 import threading
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Tuple
-import requests
-import ntplib
+import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from typing import Dict, List, Optional
+
+import ntplib
+import requests
 
 from .config import TimeSettings
 

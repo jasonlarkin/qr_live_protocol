@@ -5,8 +5,9 @@ These tests verify that the system meets user requirements and expectations.
 """
 
 import pytest
-from src.core import QRLiveProtocol
+
 from src.config import QRLPConfig
+from src.core import QRLiveProtocol
 
 
 class TestUserScenarios:

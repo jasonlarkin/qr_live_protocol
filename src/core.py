@@ -6,18 +6,17 @@ components to generate live, verifiable QR codes with time and identity informat
 """
 
 import json
-import time
-import hashlib
 import threading
+import time
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
-from typing import Dict, List, Optional, Union, Callable
-from dataclasses import dataclass, asdict
+from typing import Callable, Dict, List, Optional
 
+from .blockchain_verifier import BlockchainVerifier
+from .config import QRLPConfig
+from .identity_manager import IdentityManager
 from .qr_generator import QRGenerator
 from .time_provider import TimeProvider
-from .blockchain_verifier import BlockchainVerifier
-from .identity_manager import IdentityManager
-from .config import QRLPConfig
 
 
 @dataclass

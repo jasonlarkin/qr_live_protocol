@@ -5,13 +5,13 @@ Handles blockchain verification by retrieving current block hashes
 from multiple blockchain networks to provide tamper-evident timestamps.
 """
 
-import time
-import hashlib
 import threading
+import time
+from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any, Dict, Optional
+
 import requests
-from dataclasses import dataclass, asdict
 
 from .config import BlockchainSettings
 

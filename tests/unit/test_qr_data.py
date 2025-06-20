@@ -4,9 +4,9 @@ Unit tests for QRData class.
 These tests focus on individual method functionality with no external dependencies.
 """
 
-import pytest
 import json
-from datetime import datetime
+
+import pytest
 
 from src.core import QRData
 

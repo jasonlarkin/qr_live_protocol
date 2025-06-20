@@ -5,16 +5,14 @@ Provides comprehensive CLI for QR Live Protocol operations including
 live streaming, verification, and configuration management.
 """
 
-import click
 import json
-import time
 import sys
-import os
-from pathlib import Path
-from typing import Optional
+import time
 
-from .core import QRLiveProtocol, QRData
+import click
+
 from .config import QRLPConfig
+from .core import QRLiveProtocol
 from .web_server import QRLiveWebServer
 
 
@@ -291,17 +289,17 @@ def status(ctx):
         click.echo("\nComponent Statistics:")
 
         time_stats = stats.get("time_provider_stats", {})
-        click.echo(f"  Time provider:")
+        click.echo("  Time provider:")
         click.echo(f"    Success rate: {time_stats.get('success_rate', 0):.2%}")
         click.echo(f"    Active servers: {time_stats.get('active_servers', 0)}")
 
         blockchain_stats = stats.get("blockchain_stats", {})
-        click.echo(f"  Blockchain verifier:")
+        click.echo("  Blockchain verifier:")
         click.echo(f"    Success rate: {blockchain_stats.get('success_rate', 0):.2%}")
         click.echo(f"    Cached chains: {blockchain_stats.get('cached_chains', [])}")
 
         identity_stats = stats.get("identity_stats", {})
-        click.echo(f"  Identity manager:")
+        click.echo("  Identity manager:")
         click.echo(f"    Hash generations: {identity_stats.get('hash_generations', 0)}")
         click.echo(f"    File count: {identity_stats.get('file_count', 0)}")
 

@@ -4,13 +4,11 @@ Tests for the core QRLP functionality.
 Tests the main QRLiveProtocol class and related functionality.
 """
 
-import pytest
 import json
-from unittest.mock import Mock, patch, MagicMock
-from datetime import datetime
+from unittest.mock import Mock, patch
 
-from src.core import QRLiveProtocol, QRData
 from src.config import QRLPConfig
+from src.core import QRData, QRLiveProtocol
 
 
 class TestQRData:

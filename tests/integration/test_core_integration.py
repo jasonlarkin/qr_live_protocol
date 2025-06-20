@@ -4,12 +4,13 @@ Integration tests for QRLiveProtocol component interactions.
 These tests verify that components work together correctly with mocked external dependencies.
 """
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime
+from unittest.mock import Mock, patch
 
-from src.core import QRLiveProtocol
+import pytest
+
 from src.config import QRLPConfig
+from src.core import QRLiveProtocol
 
 
 class TestQRLiveProtocolIntegration:
