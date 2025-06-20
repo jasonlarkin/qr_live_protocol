@@ -1,1 +1,1 @@
-"""Acceptance tests for user scenarios.""" 
+"""Acceptance tests for user scenarios."""

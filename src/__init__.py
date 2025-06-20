@@ -1,8 +1,8 @@
 """
 QR Live Protocol (QRLP)
 
-A comprehensive system for generating and displaying live QR codes that encode 
-time-stamped, cryptographically verifiable information for livestreaming 
+A comprehensive system for generating and displaying live QR codes that encode
+time-stamped, cryptographically verifiable information for livestreaming
 and official video releases.
 
 Built on the qrkey protocol for QR code generation and recovery.
@@ -23,9 +23,9 @@ from .web_server import QRLiveWebServer
 __all__ = [
     "QRLiveProtocol",
     "QRLPConfig",
-    "QRGenerator", 
+    "QRGenerator",
     "TimeProvider",
     "BlockchainVerifier",
     "IdentityManager",
-    "QRLiveWebServer"
-] 
+    "QRLiveWebServer",
+]
