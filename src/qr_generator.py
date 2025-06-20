@@ -22,13 +22,14 @@ except ImportError:
     RoundedModuleDrawer = None
     SquareModuleDrawer = None
 
-from PIL import Image, ImageDraw, ImageFont
-from io import BytesIO
 import base64
 import json
 import time
-from typing import Dict, List, Optional, Union, Tuple
 from dataclasses import dataclass
+from io import BytesIO
+from typing import Dict, List, Optional, Union
+
+from PIL import Image, ImageDraw, ImageFont
 
 from .config import QRSettings
 
@@ -145,7 +146,7 @@ class QRGenerator:
         qr_images.append(metadata_qr)
 
         # Create QR codes for each chunk
-        for i, chunk in enumerate(chunks):
+        for _i, chunk in enumerate(chunks):
             chunk_qr = self.generate_qr_image(chunk, style="live")
             qr_images.append(chunk_qr)
 
@@ -183,9 +184,9 @@ class QRGenerator:
             Dictionary with readability metrics
         """
         try:
-            from pyzbar import pyzbar
             import cv2
             import numpy as np
+            from pyzbar import pyzbar
 
             # Convert bytes to numpy array
             nparr = np.frombuffer(qr_image, np.uint8)
@@ -316,7 +317,7 @@ class QRGenerator:
                 font_large = ImageFont.truetype("arial.ttf", 24)
                 font_medium = ImageFont.truetype("arial.ttf", 16)
                 font_small = ImageFont.truetype("arial.ttf", 12)
-            except (OSError, IOError):
+            except OSError:
                 # Fallback to default font
                 font_large = ImageFont.load_default()
                 font_medium = ImageFont.load_default()

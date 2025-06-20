@@ -5,21 +5,22 @@ This file contains shared fixtures and configuration that can be used
 across all test files in the project.
 """
 
-import pytest
-import tempfile
 import os
-from pathlib import Path
-from unittest.mock import Mock, patch
-from typing import Dict, Any
 
 # Add src to path for imports
 import sys
+import tempfile
+from pathlib import Path
+from unittest.mock import patch
 
-project_root = Path(__file__).parent.parent
+import pytest
+
+# Add project root to path for src imports
+project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
-from src.config import QRLPConfig, QRSettings, TimeSettings, BlockchainSettings
-from src.core import QRLiveProtocol, QRData
+from src.config import QRLPConfig  # noqa: E402
+from src.core import QRData, QRLiveProtocol  # noqa: E402
 
 
 @pytest.fixture

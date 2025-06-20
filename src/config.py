@@ -4,9 +4,9 @@ Configuration module for QRLP.
 Defines all configuration structures and default values for the QR Live Protocol.
 """
 
-from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Set
 import os
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Set
 
 
 @dataclass
@@ -162,16 +162,18 @@ class QRLPConfig:
         """Load configuration from JSON or YAML file."""
         import json
 
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             if config_file.endswith(".json"):
                 data = json.load(f)
             elif config_file.endswith((".yml", ".yaml")):
                 try:
                     import yaml
-
-                    data = yaml.safe_load(f)
                 except ImportError:
-                    raise ImportError("PyYAML required for YAML config files")
+                    raise ImportError(
+                        "PyYAML required for YAML config files"
+                    ) from None
+                with open(config_file) as f:
+                    data = yaml.safe_load(f)
             else:
                 raise ValueError("Config file must be .json, .yml, or .yaml")
 
